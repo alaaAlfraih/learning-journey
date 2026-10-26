@@ -75,6 +75,15 @@ document.getElementById('resetDay').onclick=()=>{if(confirm('هل تريدين �
 document.getElementById('export').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='learning-journey-backup-'+stamp()+'.json';a.click();URL.revokeObjectURL(a.href)};
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
 document.getElementById('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!data.daily||!data.weekly||!data.final||!Array.isArray(data.monthsDone))throw Error();if(confirm('استيراد النسخة سيستبدل تقدمك الحالي. متابعة؟')){state=data;save();location.reload()}}catch{alert('ملف النسخة الاحتياطية غير صالح')}e.target.value=''};
-save();render();
+render();
+window.addEventListener('journey:remote', event => {
+  const incoming = event.detail;
+  if (!incoming || !incoming.daily || !incoming.weekly || !incoming.final) return;
+  state = incoming;
+  state.checked ??= {daily:{},weekly:{},final:{}};
+  for (const section of ['daily','weekly','final']) state.checked[section] ??= {};
+  state.monthsDone ??= Array(6).fill(false);
+  render();
+});
 </script>
 <script type="module" src="./firebase-sync.js"></script></body></html>
